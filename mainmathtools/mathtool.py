@@ -1,10 +1,8 @@
 #импорт библиотек
 import sys
-import math
+from calc import equation
 
-MAX_VALUE = 10000
-
-#Разбор параметров командной строки
+#список аргументов командной строки
 args = sys.argv[1:]
 #вывод справки
 if len(args) == 0 or args[0] == "--help":
@@ -14,8 +12,8 @@ if len(args) == 0 or args[0] == "--help":
     print("    python mathtool.py --help                  вывод справки")
     print("    python mathtool.py solve                   ввод коэффициентов с клавиатуры")
     print("    python mathtool.py solve -a 1 -b -3 -c 2   решение с заданными коэффициентами")
-    print("Коэффициенты A, B, C — целые числа, по модулю не превышающие 10000.")
-sys.exit(0)
+    print(f"Коэффициенты A, B, C — целые числа, по модулю не превышающие {equation.MAX_VALUE}.")
+    sys.exit(0) 
 
 if args[0] != "solve":
     sys.exit("error неизвестная команда")
@@ -37,27 +35,20 @@ try:
 except ValueError:
     sys.exit("error коэффициент не является целым числом")
 
-#Проверка диапазона
-if abs(a) > MAX_VALUE or abs(b) > MAX_VALUE or abs(c) > MAX_VALUE:
-    sys.exit("error значение вне диапазона")
+try:
+    kind, d, roots = equation.solve(a, b, c)
+except ValueError as error:
+    sys.exit(str(error))
 
-#Решение
-if a == 0:
-    if b == 0:
-        sys.exit("error неизвестное отсутствует") #C=0
-    print("Уравнение линейное")
-    print(f"x = {-c / b:.3f}")
-
-else: #a != 0
-    print("Уравнение квадратное")
-    d = b * b - 4 * a * c
+print(f"Уравнение {kind}")
+if kind == "линейное":
+    print(f"x = {roots[0]}")
+else:
     print(f"D = {d}")
-    
-#три случая дискриминанта
-    if d > 0:
-        print(f"x1 = {(-b + math.sqrt(d)) / (2 * a):.3f}")
-        print(f"x2 = {(-b - math.sqrt(d)) / (2 * a):.3f}")
-    elif d == 0:
-        print(f"x = {-b / (2 * a):.3f}")
+    if len(roots) == 2:
+        print(f"x1 = {roots[0]:.3f}")
+        print(f"x2 = {roots[1]:.3f}")
+    elif len(roots) == 1:
+        print(f"x = {roots[0]:.3f}")
     else:
         print("корней нет")
