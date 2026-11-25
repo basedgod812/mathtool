@@ -16,7 +16,7 @@ if len(args) == 0 or args[0] == "--help":
     sys.exit(0) 
 
 if args[0] != "solve":
-    sys.exit("error неизвестная команда")
+    sys.exit("error неизвестная командау")
 #ввод переменной если условия соблюдены
 if len(args) == 1:
     values = [input("Введите A: "), input("Введите B: "), input("Введите C: ")]
@@ -51,4 +51,5 @@ else:
     elif len(roots) == 1:
         print(f"x = {roots[0]:.3f}")
     else:
-        print("корней нет")
+        print("корней нету")
+#
