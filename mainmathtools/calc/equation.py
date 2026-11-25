@@ -15,12 +15,12 @@ def solve(a, b, c):
     if a == 0:#Ax^2 пропал, bx + c = 0
         return "линейное", None, [-c / b] #none=нет D
     d = b * b - 4 * a * c
-    if d < 0:
+    if d < 0: #корней нет
         korni = []
-    elif d == 0:
+    elif d == 0:#один корень
         korni = [-b / (2 * a)]
-    else:
-        korni = math.sqrt(d)
-        korni = [(-b - korni) / (2 * a), (-b + korni) / (2 * a)]
+    else:#два корня
+        root = math.sqrt(d)
+        korni = [(-b + root) / (2 * a), (-b - root) / (2 * a)]
     return "квадратное", d,korni
 
