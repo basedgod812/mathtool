@@ -11,15 +11,15 @@ def valid(a, b, c):
 
 def solve(a, b, c):
     """Вернуть вид уравнения, дискриминант и список корней."""
-    valid(a,b,c)
-    if a == 0:#Ax^2 пропал, bx + c = 0
-        return "линейное", None, [-c / b] #none=нет D
+    valid(a, b, c)
+    if a == 0:  # Ax^2 пропал, bx + c = 0
+        return "линейное", None, [-c / b]  # none=нет D
     d = b * b - 4 * a * c
-    if d < 0: #корней нет
+    if d < 0:  # корней нет
         korni = []
-    elif d == 0:#один корень
+    elif d == 0:  # один корень
         korni = [-b / (2 * a)]
-    else:#два корня
+    else:  # два корня
         root = math.sqrt(d)
         korni = [(-b + root) / (2 * a), (-b - root) / (2 * a)]
     return "квадратное", d,korni

@@ -1,55 +1,69 @@
 #импорт библиотек
 import sys
-from calc import equation
 
-#список аргументов командной строки
-args = sys.argv[1:]
-#вывод справки
-if len(args) == 0 or args[0] == "--help":
-    print("mathtool — решение уравнений вида A*x^2 + B*x + C = 0")
-    print("Использование:")
-    print("    python mathtool.py                         вывод справки")
-    print("    python mathtool.py --help                  вывод справки")
-    print("    python mathtool.py solve                   ввод коэффициентов с клавиатуры")
-    print("    python mathtool.py solve -a 1 -b -3 -c 2   решение с заданными коэффициентами")
-    print(f"Коэффициенты A, B, C — целые числа, по модулю не превышающие {equation.MAX_VALUE}.")
-    sys.exit(0) 
+from calc import equation, stats 
+from cli import build_parser
 
-if args[0] != "solve":
-    sys.exit("error неизвестная командау")
-#ввод переменной если условия соблюдены
-if len(args) == 1:
-    values = [input("Введите A: "), input("Введите B: "), input("Введите C: ")]
-elif len(args) == 7:
-    if args[1] != "-a" or args[3] != "-b" or args[5] != "-c":
-        sys.exit("error неизвестный параметр")
-    values = [args[2], args[4], args[6]]
-else:
-    sys.exit("error неверный набор параметров")
+def handle_solve(args):
+    """Получить коэффициенты и показать решение."""
+    a, b, c = args.a, args.b, args.c
+    if a is None and b is None and c is None:
+        try:
+            a = int(input("Введите A: "))
+            b = int(input("Введите B: "))
+            c = int(input("Введите C: "))
+        except (ValueError, EOFError):
+            raise ValueError("error коэффициент не является целым числом") from None
+    elif a is None or b is None or c is None:
+        raise ValueError("укажите три коэффициента либо ниолдного")
+    kind, d, korni = equation.solve(a, b, c)
 
-#Преобразование в целые числа
-try:
-    a = int(values[0])
-    b = int(values[1])
-    c = int(values[2])
-except ValueError:
-    sys.exit("error коэффициент не является целым числом")
+    print(f"Уравнение {kind}")
 
-try:
-    kind, d, roots = equation.solve(a, b, c)
-except ValueError as error:
-    sys.exit(str(error))
+    if d is not None:
+        print(f"D = {d}")
 
-print(f"Уравнение {kind}")
-if kind == "линейное":
-    print(f"x = {roots[0]}")
-else:
-    print(f"D = {d}")
-    if len(roots) == 2:
-        print(f"x1 = {roots[0]:.3f}")
-        print(f"x2 = {roots[1]:.3f}")
-    elif len(roots) == 1:
-        print(f"x = {roots[0]:.3f}")
+    if len(korni) == 2:
+        print(f"x1 = {korni[0]:.3f}")
+        print(f"x2 = {korni[1]:.3f}")
+    elif len(korni) == 1:
+        print(f"x = {korni[0]:.3f}")
     else:
-        print("корней нету")
-#
+        print("корней нет")
+
+def handle_stats(args):
+    """Прочитать числа из файла или с клавиатуры."""
+    if args.input is None:
+        numbers = stats.parse_numbers(sys.stdin)
+    else:
+        try:
+            with open(args.input, encoding="utf-8-sig") as source:
+                numbers = stats.parse_numbers(source)
+        except OSError:
+            raise ValueError("не удалось открыть файл с числами") from None
+
+    print(f"Количество: {len(numbers)}")
+    print(f"Сумма: {stats.total(numbers):.3f}")
+    print(f"Ср. арифм.: {stats.mean(numbers):.3f}")
+HANDLERS = {
+        "solve": handle_solve,
+        "stats": handle_stats,
+    }
+def main():
+    """Разобрать команду и запустить её обработчик."""
+    parser = build_parser()
+    args = parser.parse_args()
+
+    if args.command is None:
+        parser.print_help()
+        return 0
+
+    try:
+        HANDLERS[args.command](args)
+    except ValueError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+
+    return 0
+if __name__ == "__main__":
+    sys.exit(main())
