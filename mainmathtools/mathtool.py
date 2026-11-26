@@ -1,11 +1,11 @@
 #импорт библиотек
 import sys
 
-from calc import equation, stats 
+from calc import equation, stats, series, integrate
 from cli import build_parser
 
 def handle_solve(args):
-    """Получить коэффициенты и показать решение."""
+    """получить коэффициенты и показать решение."""
     a, b, c = args.a, args.b, args.c
     if a is None and b is None and c is None:
         try:
@@ -32,7 +32,7 @@ def handle_solve(args):
         print("корней нет")
 
 def handle_stats(args):
-    """Прочитать числа из файла или с клавиатуры."""
+    """прочитать числа из файла или с клавиатуры."""
     if args.input is None:
         numbers = stats.parse_numbers(sys.stdin)
     else:
@@ -42,15 +42,47 @@ def handle_stats(args):
         except OSError:
             raise ValueError("не удалось открыть файл с числами") from None
 
-    print(f"Количество: {len(numbers)}")
-    print(f"Сумма: {stats.total(numbers):.3f}")
-    print(f"Ср. арифм.: {stats.mean(numbers):.3f}")
+    for label, function, form in stats.INDICATORS:
+        value = function(numbers)
+
+        if value is None:
+            text = "НЕ СУЩЕСТВУЕТ"
+        else:
+            text = format(value, form)
+
+        print(f"{label}: {text}")
+
+def handle_series(args):
+    """рассчитать и вывести сумму выбранного ряда."""
+    term, formula = series.FORMULAS[args.func]
+
+    if args.terms is None:
+        result, count = series.sum_by_eps(term, args.eps)
+    else:
+        result, count = series.sum_by_count(term, args.terms)
+
+    print(formula)
+    print(f"слагаемых: {count}")
+    print(f"сумма ряда: {result:.{series.DIGITS}f}")
+
+def handle_integrate(args):
+    """проверить данные, вычислить интеграл и показать результат."""
+    function, formula, lower, upper, closed = integrate.FUNCTIONS[args.func]
+
+    integrate.validate(args.lower, args.upper, args.steps, lower, upper, closed)
+    result = integrate.integrate(function, args.lower, args.upper, args.steps)
+
+    print(formula)
+    print(f"значение интеграла: {result:.4f}")
+
 HANDLERS = {
         "solve": handle_solve,
         "stats": handle_stats,
+        "series": handle_series,
+        "integrate": handle_integrate,
     }
 def main():
-    """Разобрать команду и запустить её обработчик."""
+    """разобрать команду и запустить её обработчик."""
     parser = build_parser()
     args = parser.parse_args()
 
